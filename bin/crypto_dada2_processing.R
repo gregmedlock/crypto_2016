@@ -189,21 +189,22 @@ write.table(final_seqs, file = "~/Documents/Projects/crypto/results/crypto_final
 write.table(final_taxa, file = "~/Documents/Projects/crypto/results/crypto_final_taxa.tsv", sep = "\t", quote = FALSE)
 write.table(final_metadata, file = "~/Documents/Projects/crypto/results/crypto_final_metadata.tsv", sep = "\t", quote = FALSE)
 
-### plotting summary
+### plotting summary of logfold changes for one of the comparisons: example w/ d20 comparison:
 
-library("ggplot2")
-theme_set(theme_bw())
-scale_fill_discrete <- function(palname = "Set1", ...) {
-  scale_fill_brewer(palette = palname, ...)
-}
-# Phylum order
-x = tapply(sigtab_d20$log2FoldChange, sigtab_d20$Phylum, function(x) max(x))
-x = sort(x, TRUE)
-sigtab_d20$Phylum = factor(as.character(sigtab_d20$Phylum), levels=names(x))
-# Genus order
-x = tapply(sigtab_d20$log2FoldChange, sigtab_d20$Genus, function(x) max(x))
-x = sort(x, TRUE)
-sigtab_d20$Genus = factor(as.character(sigtab_d20$Genus), levels=names(x))
-ggplot(sigtab_d20, aes(x=Genus, y=log2FoldChange, color=Phylum)) + geom_point(size=6) + 
-  theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust=0.5))
+# 
+# library("ggplot2")
+# theme_set(theme_bw())
+# scale_fill_discrete <- function(palname = "Set1", ...) {
+#   scale_fill_brewer(palette = palname, ...)
+# }
+# # Phylum order
+# x = tapply(sigtab_d20$log2FoldChange, sigtab_d20$Phylum, function(x) max(x))
+# x = sort(x, TRUE)
+# sigtab_d20$Phylum = factor(as.character(sigtab_d20$Phylum), levels=names(x))
+# # Genus order
+# x = tapply(sigtab_d20$log2FoldChange, sigtab_d20$Genus, function(x) max(x))
+# x = sort(x, TRUE)
+# sigtab_d20$Genus = factor(as.character(sigtab_d20$Genus), levels=names(x))
+# ggplot(sigtab_d20, aes(x=Genus, y=log2FoldChange, color=Phylum)) + geom_point(size=6) + 
+#   theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust=0.5))
 
