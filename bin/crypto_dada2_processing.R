@@ -93,8 +93,8 @@ write.table(taxa.plus, file='~/Documents/Projects/crypto/data/taxa.plus.tsv', qu
 samdf <- data.frame(sample=samples.out, description=diet_description, day=days_on_diet)
 rownames(samdf) <- samples.out
 
-seqtab.nochim.taxa <- seqtab.nochim
-colnames(seqtab.nochim.taxa) <- 1:nrow(taxa.plus)
+seqtab.nochim.taxa <- seqtab.nochim # copy to create a new object that has taxa information
+colnames(seqtab.nochim.taxa) <- 1:nrow(taxa.plus) # add the taxa information
 taxa.for.table <- taxa.plus
 rownames(taxa.for.table) <- 1:nrow(taxa.plus)
 ps <- phyloseq(otu_table(seqtab.nochim.taxa, taxa_are_rows=FALSE), 
@@ -102,6 +102,7 @@ ps <- phyloseq(otu_table(seqtab.nochim.taxa, taxa_are_rows=FALSE),
                tax_table(taxa.for.table))
 ps
 
+# Filter sequences that don't have more than 10 counts in any sample
 ps.count_thresh <- filter_taxa(ps, function(x) max(x) > 10, TRUE)
 ps.count_thresh
 
@@ -148,12 +149,14 @@ head(sigtab_d20)
 ### Get sequences that were significantly different in each comparison to generate ecological heatmaps
 sig_seqs <- union(rownames(sigtab_d13),rownames(sigtab_d14))
 sig_seqs <- union(sig_seqs,rownames(sigtab_d20))
+# Remove weaned and 6d on-diet mice
 ps.remove_weaned <- prune_samples(sample_data(ps.count_thresh)$description != "dPD.weaned",ps.count_thresh)
 ps.remove_pre_inf <- prune_samples(sample_data(ps.remove_weaned)$description != "dPD.6d.post.weaning",ps.remove_weaned)
 
-
+# Transform sequence table from counts to relative abundance
 ps.remove_pre_inf.rel <- transform_sample_counts(ps.remove_pre_inf, function(x) x/sum(x))
 
+# Generate OTU tables for each comparison, jsut in case. Here, we don't use these.
 d13_OTU_table <- otu_table(transform_sample_counts(d13_subset, function(x) x/sum(x)))[,rownames(sigtab_d13)]
 colnames(d13_OTU_table) <- tax_table(d13_subset)[,6][rownames(sigtab_d13),]
 d14_OTU_table <- otu_table(transform_sample_counts(d14_subset, function(x) x/sum(x)))[,rownames(sigtab_d14)]
@@ -167,6 +170,9 @@ sig.thresh_OTU_table <- otu_table(transform_sample_counts(ps.count_thresh, funct
 ### Generate heatmaps for paper
 # Heatmap for reference for Jordi during cross-correlation analysis
 p <- plot_heatmap(prune_taxa(sig_seqs,ps.remove_pre_inf.rel),"NMDS","bray",sample.label = "description","Genus", first.sample = "Plate2-B4")
+ggsave(file = "~/Documents/Projects/crypto/results/seq_heatmap.svg", plot=p, width = 10, height = 10)
+
+# Extract sample and taxa ordering as determined by plot_heatmap()
 taxa_order <- names(p$plot_env$labvec)
 sample_order <- p$plot_env$sample.order
 # Save heatmap data for Jordi's correlation analysis
