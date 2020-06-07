@@ -102,8 +102,15 @@ ps <- phyloseq(otu_table(seqtab.nochim.taxa, taxa_are_rows=FALSE),
                tax_table(taxa.for.table))
 ps
 
+# Filter samples that don't have matching metabonomes or are later infected with EAEC
+filter_these_samples <- c('Plate1-G12','Plate1-F12','Plate2-C1','Plate2-B1','Plate1-E12','Plate1-A11',
+                          'Plate2-A4','Plate2-A1','Plate2-H3','Plate1-D12','Plate1-C11',
+                          'Plate1-A12','Plate2-B8','Plate1-B11','Plate1-H10')
+ps <- prune_samples(!(sample_data(ps)$sample %in% filter_these_samples),ps)
+ps <- prune_samples(sample_data(ps)$day > 6, ps)
 # Filter sequences that don't have more than 10 counts in any sample
-ps.count_thresh <- filter_taxa(ps, function(x) max(x) > 10, TRUE)
+ps.sample_thresh <- filter_taxa(ps, function(x) sum(x > 1) > 1, TRUE)
+ps.count_thresh <- filter_taxa(ps.sample_thresh, function(x) max(x) > 10, TRUE)
 ps.count_thresh
 
 library(DESeq2)
@@ -149,7 +156,7 @@ head(sigtab_d20)
 ### Get sequences that were significantly different in each comparison to generate ecological heatmaps
 sig_seqs <- union(rownames(sigtab_d13),rownames(sigtab_d14))
 sig_seqs <- union(sig_seqs,rownames(sigtab_d20))
-# Remove weaned and 6d on-diet mice
+# Remove weaned and 6d on-diet mice <- no longer needed with new pruning above
 ps.remove_weaned <- prune_samples(sample_data(ps.count_thresh)$description != "dPD.weaned",ps.count_thresh)
 ps.remove_pre_inf <- prune_samples(sample_data(ps.remove_weaned)$description != "dPD.6d.post.weaning",ps.remove_weaned)
 
